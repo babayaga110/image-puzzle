@@ -3,6 +3,7 @@ import { GridSize } from '../types';
 import PuzzleBoard from './PuzzleBoard';
 import { Clock, Move, RotateCcw, ArrowLeft } from 'lucide-react';
 import { generateSolvedState, shuffleGrid, isAdjacent, checkWin } from '../utils/gameLogic';
+import { audio } from '../utils/audio';
 
 interface GameScreenProps {
   image: string;
@@ -24,6 +25,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
     setTileState(generateSolvedState(size));
     
     const timer = setTimeout(() => {
+      audio.playShuffle();
       const shuffled = shuffleGrid(size);
       setTileState(shuffled);
       setIsInitializing(false);
@@ -56,12 +58,34 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
       
       setTileState(newTileState);
       setMoves(m => m + 1);
+      
+      audio.playMove();
 
       // Check win
       if (checkWin(newTileState)) {
         onWin(seconds, moves + 1);
       }
+    } else {
+        // Optional: Play error sound?
+        // audio.playClick(); 
     }
+  };
+
+  const handleRestart = () => {
+    audio.playSelect();
+    setIsInitializing(true);
+    setMoves(0);
+    setSeconds(0);
+    setTimeout(() => {
+        audio.playShuffle();
+        setTileState(shuffleGrid(size));
+        setIsInitializing(false);
+    }, 500);
+  };
+
+  const handleExit = () => {
+      audio.playClick();
+      onExit();
   };
 
   const formatTime = (totalSeconds: number) => {
@@ -76,7 +100,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
       {/* Sidebar / Topbar */}
       <div className="w-full md:w-80 p-6 flex flex-row md:flex-col gap-4 justify-between md:justify-start z-10 bg-slate-900/50 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-b md:border-b-0 md:border-r border-slate-700">
         <button 
-          onClick={onExit}
+          onClick={handleExit}
           className="p-3 bg-slate-800 rounded-xl border border-slate-600 hover:bg-red-900/50 hover:border-red-500 transition-colors text-slate-300"
         >
           <ArrowLeft />
@@ -105,15 +129,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
         </div>
 
         <button 
-          onClick={() => {
-            setIsInitializing(true);
-            setMoves(0);
-            setSeconds(0);
-            setTimeout(() => {
-                setTileState(shuffleGrid(size));
-                setIsInitializing(false);
-            }, 500);
-          }}
+          onClick={handleRestart}
           className="hidden md:flex p-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-600 gap-3 items-center justify-center font-bold transition-all"
         >
           <RotateCcw className="w-5 h-5" /> RESTART

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Play, RotateCcw, Trophy } from 'lucide-react';
+import { audio } from '../utils/audio';
 
 interface WinScreenProps {
   image: string;
@@ -43,10 +44,24 @@ const Confetti: React.FC = () => {
 };
 
 const WinScreen: React.FC<WinScreenProps> = ({ image, time, moves, onReplay, onNewGame }) => {
+  useEffect(() => {
+    audio.playWin();
+  }, []);
+
   const formatTime = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleReplay = () => {
+      audio.playStart();
+      onReplay();
+  };
+
+  const handleNewGame = () => {
+      audio.playClick();
+      onNewGame();
   };
 
   return (
@@ -89,13 +104,13 @@ const WinScreen: React.FC<WinScreenProps> = ({ image, time, moves, onReplay, onN
 
            <div className="flex flex-col gap-3">
              <button 
-               onClick={onReplay}
+               onClick={handleReplay}
                className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 text-xl transition-transform active:scale-95"
              >
                 <RotateCcw /> PLAY AGAIN
              </button>
              <button 
-               onClick={onNewGame}
+               onClick={handleNewGame}
                className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl border border-slate-600 flex items-center justify-center gap-2 text-xl transition-colors"
              >
                 <Play /> NEW IMAGE

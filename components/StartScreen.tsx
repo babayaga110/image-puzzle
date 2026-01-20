@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SAMPLE_IMAGES } from '../constants';
 import { GridSize } from '../types';
 import { Upload, Image as ImageIcon, Check, Play } from 'lucide-react';
+import { audio } from '../utils/audio';
 
 interface StartScreenProps {
   onStartGame: (image: string, size: GridSize) => void;
@@ -14,6 +15,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      audio.playSelect();
       const reader = new FileReader();
       reader.onload = (ev) => {
         if (ev.target?.result) {
@@ -22,6 +24,25 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleImageSelect = (img: string) => {
+    if (selectedImage !== img) {
+        audio.playClick();
+        setSelectedImage(img);
+    }
+  };
+
+  const handleDifficultySelect = (size: GridSize) => {
+    if (difficulty !== size) {
+        audio.playClick();
+        setDifficulty(size);
+    }
+  };
+
+  const handleStart = () => {
+      audio.playStart();
+      onStartGame(selectedImage, difficulty);
   };
 
   return (
@@ -50,7 +71,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
           {SAMPLE_IMAGES.map((img, idx) => (
             <button
               key={idx}
-              onClick={() => setSelectedImage(img)}
+              onClick={() => handleImageSelect(img)}
               className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 active:scale-95 ${selectedImage === img ? 'border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)]' : 'border-transparent opacity-60 hover:opacity-100'}`}
             >
               <img src={img} alt={`Sample ${idx}`} className="w-full h-full object-cover" />
@@ -79,7 +100,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
             {[3, 4, 5].map((size) => (
               <button
                 key={size}
-                onClick={() => setDifficulty(size as GridSize)}
+                onClick={() => handleDifficultySelect(size as GridSize)}
                 className={`p-4 rounded-xl border-2 flex items-center justify-between transition-all ${
                   difficulty === size 
                     ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)]' 
@@ -99,7 +120,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStartGame }) => {
         </div>
 
         <button
-          onClick={() => onStartGame(selectedImage, difficulty)}
+          onClick={handleStart}
           className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white rounded-3xl p-8 flex flex-col items-center justify-center gap-4 shadow-lg hover:shadow-cyan-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
         >
           <span className="text-4xl font-black brand-font tracking-wider">START</span>

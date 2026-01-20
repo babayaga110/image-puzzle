@@ -1,14 +1,21 @@
 import React from 'react';
 import { Play } from 'lucide-react';
+import { audio } from '../utils/audio';
 
 interface AttractScreenProps {
   onStart: () => void;
 }
 
 const AttractScreen: React.FC<AttractScreenProps> = ({ onStart }) => {
+  const handleClick = () => {
+    audio.init(); // Important: Unlock AudioContext on user interaction
+    audio.playStart();
+    onStart();
+  };
+
   return (
     <div 
-      onClick={onStart}
+      onClick={handleClick}
       className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 bg-[url('https://picsum.photos/id/1040/1920/1080')] bg-cover bg-center"
     >
       <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" />
