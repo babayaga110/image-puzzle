@@ -21,17 +21,52 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
 
   // Initialize game
   useEffect(() => {
-    // Start with a brief solved state so user sees target, then shuffle
+    // Start with a brief solved state so user sees target
     setTileState(generateSolvedState(size));
+    setIsInitializing(true);
     
-    const timer = setTimeout(() => {
-      audio.playShuffle();
-      const shuffled = shuffleGrid(size);
-      setTileState(shuffled);
-      setIsInitializing(false);
-    }, 1000);
+    let intervalId: ReturnType<typeof setInterval>;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
-    return () => clearTimeout(timer);
+    // Wait a beat (800ms) then start visual shuffling
+    timeoutId = setTimeout(() => {
+        let shuffleCount = 0;
+        const totalShuffles = 25; // How many frames of animation
+        
+        // Initial shuffle sound burst
+        audio.playShuffle(); 
+
+        intervalId = setInterval(() => {
+            // Generate purely random visual state (doesn't need to be solvable, just visual chaos)
+            const randomSlots = Array.from({length: size * size}, (_, i) => i);
+            // Fisher-Yates shuffle
+            for (let i = randomSlots.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [randomSlots[i], randomSlots[j]] = [randomSlots[j], randomSlots[i]];
+            }
+            setTileState(randomSlots);
+            
+            // Play tick sound every frame for mechanical feel
+            audio.playTick();
+
+            shuffleCount++;
+            if (shuffleCount >= totalShuffles) {
+                clearInterval(intervalId);
+                
+                // Finalize with a valid solvable state
+                const solvableState = shuffleGrid(size);
+                setTileState(solvableState);
+                setIsInitializing(false);
+                audio.playStart(); // Ready sound
+            }
+        }, 50); // Fast updates (50ms)
+
+    }, 800);
+
+    return () => {
+        clearTimeout(timeoutId);
+        clearInterval(intervalId);
+    };
   }, [image, size]);
 
   // Game Timer
@@ -76,10 +111,34 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
     setIsInitializing(true);
     setMoves(0);
     setSeconds(0);
+    
+    // Set to solved briefly then trigger the same shuffle logic
+    setTileState(generateSolvedState(size));
+    
     setTimeout(() => {
-        audio.playShuffle();
-        setTileState(shuffleGrid(size));
-        setIsInitializing(false);
+        let shuffleCount = 0;
+        const totalShuffles = 25;
+        
+        audio.playShuffle(); 
+
+        const intervalId = setInterval(() => {
+            const randomSlots = Array.from({length: size * size}, (_, i) => i);
+            for (let i = randomSlots.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [randomSlots[i], randomSlots[j]] = [randomSlots[j], randomSlots[i]];
+            }
+            setTileState(randomSlots);
+            audio.playTick();
+
+            shuffleCount++;
+            if (shuffleCount >= totalShuffles) {
+                clearInterval(intervalId);
+                const solvableState = shuffleGrid(size);
+                setTileState(solvableState);
+                setIsInitializing(false);
+                audio.playStart();
+            }
+        }, 50);
     }, 500);
   };
 
@@ -130,26 +189,22 @@ const GameScreen: React.FC<GameScreenProps> = ({ image, size, onWin, onExit }) =
 
         <button 
           onClick={handleRestart}
-          className="hidden md:flex p-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-600 gap-3 items-center justify-center font-bold transition-all"
+          disabled={isInitializing}
+          className={`hidden md:flex p-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl border border-slate-600 gap-3 items-center justify-center font-bold transition-all ${isInitializing ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          <RotateCcw className="w-5 h-5" /> RESTART
+          <RotateCcw className={`w-5 h-5 ${isInitializing ? 'animate-spin' : ''}`} /> RESTART
         </button>
       </div>
 
       {/* Main Game Area */}
       <div className="flex-1 p-4 md:p-8 flex items-center justify-center bg-slate-950/50 relative">
-        {isInitializing ? (
-           <div className="absolute inset-0 flex items-center justify-center z-50 bg-slate-950/80 backdrop-blur-sm">
-             <div className="text-3xl font-black text-cyan-400 animate-pulse brand-font">SHUFFLING...</div>
-           </div>
-        ) : null}
-        
         <PuzzleBoard 
           image={image}
           size={size}
           currentSlots={tileState}
           onTileClick={handleTileClick}
           isWon={false}
+          isShuffling={isInitializing}
         />
       </div>
     </div>

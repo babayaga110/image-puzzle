@@ -7,15 +7,15 @@ interface PuzzleBoardProps {
   currentSlots: number[]; // Index = Tile ID, Value = Current Slot
   onTileClick: (tileId: number) => void;
   isWon: boolean;
+  isShuffling?: boolean;
 }
 
-const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, size, currentSlots, onTileClick, isWon }) => {
+const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, size, currentSlots, onTileClick, isWon, isShuffling }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   
   // Calculate tile dimensions
   // We use percentage logic for fluid responsiveness
   const tilePercentage = 100 / size;
-  const gapPercentage = 1.5; // Visual gap in percentage roughly
   
   // We need to render N*N tiles.
   // The last tile (ID = size*size - 1) is the empty one.
@@ -56,10 +56,10 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ image, size, currentSlots, on
         return (
           <div
             key={tileId}
-            onClick={() => !isWon && onTileClick(tileId)}
-            className={`absolute transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] cursor-pointer ${
-               isWon ? 'z-10' : 'z-20 hover:brightness-110 active:scale-95'
-            }`}
+            onClick={() => !isWon && !isShuffling && onTileClick(tileId)}
+            className={`absolute ${isShuffling ? '' : 'transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]'} cursor-pointer ${
+               isWon ? 'z-10' : 'z-20'
+            } ${!isShuffling && !isWon ? 'hover:brightness-110 active:scale-95' : ''}`}
             style={{
               width: `calc(${tilePercentage}% - 4px)`, // Subtract gap
               height: `calc(${tilePercentage}% - 4px)`,

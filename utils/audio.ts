@@ -68,6 +68,11 @@ class SoundSystem {
     }
   }
 
+  playTick() {
+      // Very short, dry click for shuffle animation
+      this.playTone(800, 'square', 0.03, 0.015);
+  }
+
   playStart() {
     // Sci-fi power up
     this.playTone(200, 'sine', 0.4, 0.1, 0);

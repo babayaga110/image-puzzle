@@ -1,5 +1,3 @@
-import { GridSize } from '../types';
-
 // Check if two slots are adjacent (up, down, left, right)
 export const isAdjacent = (index1: number, index2: number, size: number): boolean => {
   const row1 = Math.floor(index1 / size);

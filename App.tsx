@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameState, GridSize } from './types';
 import AttractScreen from './components/AttractScreen';
 import StartScreen from './components/StartScreen';
